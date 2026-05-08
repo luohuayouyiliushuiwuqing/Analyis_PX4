@@ -97,6 +97,39 @@ class DataProcessor:
             'z': pos.data['z']
         }
 
+    def get_fly_mode_data(self):
+        NAV_STATES = {
+            0: "Manual",
+            1: "Altitude",
+            2: "Position",
+            3: "Mission",
+            4: "Hold",
+            5: "Return",
+            6: "Acro",
+            # 10: "Offboard",
+            12: "Stabilized",
+            14: "Offboard",
+        }
+        vehicle_status = self.data_extractor.get_dataset("vehicle_status")
+        if vehicle_status is None:
+            return None
+
+        nav_raw = vehicle_status.data['nav_state']
+
+        nav = [
+            NAV_STATES.get(x, f"UNKNOWN_{x}")
+            for x in nav_raw
+        ]
+
+        timestamps = self.data_extractor.get_timestamps("vehicle_status")
+        if timestamps is None:
+            return None
+
+        return {
+            'timestamps': timestamps,
+            'nav': nav
+        }
+
     def get_gps_position_data(self):
         """
         获取GPS位置数据
@@ -194,6 +227,8 @@ class DataProcessor:
 
         return {
             'timestamps': timestamps,
+            'vx': vx,
+            'vy': vy,
             'vz': vz,
             'vxy': vxy
         }

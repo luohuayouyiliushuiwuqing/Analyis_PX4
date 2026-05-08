@@ -18,12 +18,61 @@ class Visualizer:
             data_processor: 数据处理器实例
         """
         self.data_processor = data_processor
+
+        self.fly_mode = self.data_processor.get_fly_mode_data()
+        self.mode_times = self.fly_mode['timestamps']
+        self.mode_names = self.fly_mode['nav']
+
         self._setup_matplotlib()
 
     def _setup_matplotlib(self):
         """配置matplotlib样式"""
         plt.rcParams['font.sans-serif'] = ['Noto Sans CJK JP']
         plt.rcParams['axes.unicode_minus'] = False
+
+    def compress_modes(self, mode_times, mode_names, end_time):
+        segments = []
+
+        if len(mode_times) == 0:
+            return segments
+
+        start = mode_times[0]
+        prev_mode = mode_names[0]
+
+        for i in range(1, len(mode_times)):
+            if mode_names[i] != prev_mode:
+                stop = mode_times[i]
+                segments.append((start, stop, prev_mode))
+                start = mode_times[i]
+                prev_mode = mode_names[i]
+
+        # last segment
+        segments.append((start, end_time, prev_mode))
+
+        return segments
+
+    def add_mode_background(self, ax, mode_times, mode_names, end_time):
+        segments = self.compress_modes(mode_times, mode_names, end_time)
+
+        MODE_COLORS = {
+            "Manual": "#f0f0f0",
+            "Position": "#d0ebff",
+            "Altitude": "#fff3bf",
+            "Offboard": "#d3f9d8",
+            "Mission": "#ffd8a8",
+            "Hold": "#e5dbff",
+            "Return": "#ffc9c9",
+            "Land": "#ffe066",
+        }
+
+        for start, stop, mode in segments:
+            color = MODE_COLORS.get(mode, "#eeeeee")
+            ax.axvspan(
+                start,
+                stop,
+                color=color,
+                alpha=0.25
+            )
 
     def show_attitude(self, ax):
         """
@@ -36,12 +85,17 @@ class Visualizer:
         if not attitude_data:
             return
 
-        ax.plot(attitude_data['timestamps'], attitude_data['roll'],
-                label='滚转角 (deg)', linewidth=1)
-        ax.plot(attitude_data['timestamps'], attitude_data['pitch'],
-                label='俯仰角 (deg)', linewidth=1)
-        ax.plot(attitude_data['timestamps'], attitude_data['yaw'],
-                label='偏航角 (deg)', linewidth=1)
+        ts = attitude_data['timestamps']
+        self.add_mode_background(
+            ax,
+            self.mode_times,
+            self.mode_names,
+            ts[-1]
+        )
+
+        ax.plot(ts, attitude_data['roll'], label='滚转角 (deg)', linewidth=1)
+        ax.plot(ts, attitude_data['pitch'], label='俯仰角 (deg)', linewidth=1)
+        ax.plot(ts, attitude_data['yaw'], label='偏航角 (deg)', linewidth=1)
         ax.set_xlabel('时间 (s)')
         ax.set_ylabel('角度 (deg)')
         ax.grid(True, alpha=0.3)
@@ -58,9 +112,17 @@ class Visualizer:
         if not pos_data:
             return
 
-        ax.plot(pos_data['timestamps'], pos_data['x'], label='X (m)', linewidth=1)
-        ax.plot(pos_data['timestamps'], pos_data['y'], label='Y (m)', linewidth=1)
-        ax.plot(pos_data['timestamps'], pos_data['z'], label='Z (m)', linewidth=1)
+        ts = pos_data['timestamps']
+        self.add_mode_background(
+            ax,
+            self.mode_times,
+            self.mode_names,
+            ts[-1]
+        )
+
+        ax.plot(ts, pos_data['x'], label='X (m)', linewidth=1)
+        ax.plot(ts, pos_data['y'], label='Y (m)', linewidth=1)
+        ax.plot(ts, pos_data['z'], label='Z (m)', linewidth=1)
         ax.set_xlabel('时间 (s)')
         ax.set_ylabel('位置 (m)')
         ax.grid(True, alpha=0.3)
@@ -77,7 +139,15 @@ class Visualizer:
         if not gps_data:
             return
 
-        ax.plot(gps_data['timestamps'], gps_data['lat'], label='纬度 (deg)', linewidth=1)
+        ts = gps_data['timestamps']
+        self.add_mode_background(
+            ax,
+            self.mode_times,
+            self.mode_names,
+            ts[-1]
+        )
+
+        ax.plot(ts, gps_data['lat'], label='纬度 (deg)', linewidth=1)
         ax.set_xlabel('时间 (s)')
         ax.set_ylabel('纬度 (deg)')
         ax.grid(True, alpha=0.3)
@@ -119,6 +189,14 @@ class Visualizer:
         if not sensor_data:
             return
 
+        ts = sensor_data['timestamps']
+        self.add_mode_background(
+            ax,
+            self.mode_times,
+            self.mode_names,
+            ts[-1]
+        )
+
         # 设置ylabel
         if sensor_type == 'accel':
             ylabel = '加速度 (m/s²)'
@@ -132,8 +210,7 @@ class Visualizer:
         # 绘制每个轴的数据
         for field in ['x', 'y', 'z']:
             if field in sensor_data:
-                ax.plot(sensor_data['timestamps'], sensor_data[field],
-                        label=f'{field.upper()}', linewidth=1)
+                ax.plot(ts, sensor_data[field], label=f'{field.upper()}', linewidth=1)
 
         ax.set_xlabel('时间 (s)')
         ax.set_ylabel(ylabel)
@@ -208,10 +285,16 @@ class Visualizer:
         if not velocity_data:
             return
 
-        ax.plot(velocity_data['timestamps'], velocity_data['vz'],
-                label='垂直速度 (m/s)', linewidth=1)
-        ax.plot(velocity_data['timestamps'], velocity_data['vxy'],
-                label='水平速度 (m/s)', linewidth=1)
+        ts = velocity_data['timestamps']
+        self.add_mode_background(
+            ax,
+            self.mode_times,
+            self.mode_names,
+            ts[-1]
+        )
+
+        ax.plot(ts, velocity_data['vz'], label='垂直速度 (m/s)', linewidth=1)
+        ax.plot(ts, velocity_data['vxy'], label='水平速度 (m/s)', linewidth=1)
         ax.minorticks_on()
         ax.grid(True, 'both', 'y')
         ax.set_xlabel('时间 (s)')
