@@ -253,10 +253,10 @@ if __name__ == "__main__":
                         help='显示所有主题列表')
     parser.add_argument('--dashboard', action='store_true',
                         help='显示仪表板（多个图表）')
-    parser.add_argument('--plot', type=str, nargs='?', const='velocity', default=None,
+    parser.add_argument('--plot', '-p', type=str, nargs='?', const='velocity', default=None,
                         choices=['velocity', 'attitude', 'position', 'battery', 'actuator', 'sensor'],
                         help='显示指定类型图表，默认 velocity')
-    parser.add_argument('--scale', type=float, default=1.0,
+    parser.add_argument('--scale', '-s', type=float, default=1.0,
                         help='速度图倍率（仅 velocity 使用）')
     parser.add_argument('--3d', dest='plot_3d', type=str, choices=['gps', 'pos'],
                         help='显示三维位置轨迹 (gps: GPS数据, pos: 本地位置)')
