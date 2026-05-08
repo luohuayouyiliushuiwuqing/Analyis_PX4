@@ -1,0 +1,66 @@
+# Python 缓存文件
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# 环境
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE 配置文件
+.idea/
+.vscode/
+.claude/
+*.swp
+*.swo
+*~
+
+# 临时文件
+*.tmp
+*.temp
+
+# 日志文件
+*.log
+
+# CSV 导出文件
+*.csv
+
+# 测试生成的文件
+test_*.csv
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+ipython_config.py
+
+# pyenv
+.python-version
+
+# 环境变量
+.env.local
+.env.*.local
+
+# 操作系统文件
+.DS_Store
+Thumbs.db
+
+# 编译文件
+*.pyc
+*.pyo
+*.pyd
+
+# 项目特定
+logs/*.ulg.bak
+logs/
+*.png
+*.jpg
+*.jpeg
+*.gif
