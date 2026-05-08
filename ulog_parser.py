@@ -118,9 +118,9 @@ class ULogParser:
         """显示电机/舵机输出"""
         self.visualizer.show_actuator(ax)
 
-    def showVelocity(self, ax):
+    def showVelocity(self, ax, offset=1):
         """显示速度数据（向后兼容）"""
-        self.visualizer.show_velocity(ax)
+        self.visualizer.show_velocity(ax, offset)
 
     def show_dashboard(self):
         """显示仪表板"""
@@ -244,17 +244,20 @@ if __name__ == "__main__":
   python ulog_parser.py log.ulg --list       # 显示所有主题
   python ulog_parser.py log.ulg --dashboard  # 显示仪表板
   python ulog_parser.py log.ulg --plot attitude  # 显示姿态图表
+  python ulog_parser.py log.ulg --plot --scale 4 # 显示4倍速度图表
         """
     )
     parser.add_argument('log_file', nargs='?', default=default_log,
                         help='ULOG 日志文件路径')
-    parser.add_argument('--list', action='store_true',
+    parser.add_argument('--list', '-l', action='store_true',
                         help='显示所有主题列表')
     parser.add_argument('--dashboard', action='store_true',
                         help='显示仪表板（多个图表）')
-    parser.add_argument('--plot', type=str,
+    parser.add_argument('--plot', type=str, nargs='?', const='velocity', default=None,
                         choices=['velocity', 'attitude', 'position', 'battery', 'actuator', 'sensor'],
-                        help='显示指定类型的图表')
+                        help='显示指定类型图表，默认 velocity')
+    parser.add_argument('--scale', type=float, default=1.0,
+                        help='速度图倍率（仅 velocity 使用）')
     parser.add_argument('--3d', dest='plot_3d', type=str, choices=['gps', 'pos'],
                         help='显示三维位置轨迹 (gps: GPS数据, pos: 本地位置)')
     parser.add_argument('--fields', type=str,
@@ -273,8 +276,6 @@ if __name__ == "__main__":
             parser.get_data()
         elif args.dashboard:
             parser.show_dashboard()
-        elif args.plot:
-            parser.info(plot_type=args.plot)
         elif args.plot_3d:
             # 显示三维位置轨迹
             use_gps = (args.plot_3d == 'gps')
@@ -287,6 +288,14 @@ if __name__ == "__main__":
             parser.show_field_list(args.fields)
         elif args.export:
             parser.export_to_csv(args.export)
+        elif args.plot is not None:
+            if args.plot == 'velocity':
+                fig, ax = plt.subplots()
+                parser.showVelocity(ax, args.scale)
+                plt.tight_layout()
+                plt.show()
+            else:
+                parser.info(plot_type=args.plot)
         else:
             parser.show_dashboard()
 
@@ -297,5 +306,6 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"错误: {e}")
         import traceback
+
         traceback.print_exc()
         sys.exit(1)

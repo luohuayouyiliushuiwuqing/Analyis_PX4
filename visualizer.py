@@ -274,7 +274,7 @@ class Visualizer:
         ax.grid(True, alpha=0.3)
         ax.legend()
 
-    def show_velocity(self, ax):
+    def show_velocity(self, ax, offset=1):
         """
         显示速度数据（垂直速度和水平速度）
 
@@ -293,8 +293,8 @@ class Visualizer:
             ts[-1]
         )
 
-        ax.plot(ts, velocity_data['vz'], label='垂直速度 (m/s)', linewidth=1)
-        ax.plot(ts, velocity_data['vxy'], label='水平速度 (m/s)', linewidth=1)
+        ax.plot(ts, velocity_data['vz'] * offset, label='垂直速度 (m/s)', linewidth=1)
+        ax.plot(ts, velocity_data['vxy'] * offset, label='水平速度 (m/s)', linewidth=1)
         ax.minorticks_on()
         ax.grid(True, 'both', 'y')
         ax.set_xlabel('时间 (s)')
