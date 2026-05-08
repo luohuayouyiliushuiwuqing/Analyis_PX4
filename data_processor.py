@@ -56,7 +56,7 @@ class DataProcessor:
         if not attitude:
             return None
 
-        timestamps = self.data_extractor.get_gps_offset_timestamps("vehicle_attitude")
+        timestamps = self.data_extractor.get_gps_offset_timestamps("vehicle_attitude", return_datetime=True)
         if timestamps is None:
             return None
 
@@ -86,7 +86,7 @@ class DataProcessor:
         if not pos:
             return None
 
-        timestamps = self.data_extractor.get_gps_offset_timestamps("vehicle_local_position")
+        timestamps = self.data_extractor.get_gps_offset_timestamps("vehicle_local_position", return_datetime=True)
         if timestamps is None:
             return None
 
@@ -121,7 +121,7 @@ class DataProcessor:
             for x in nav_raw
         ]
 
-        timestamps = self.data_extractor.get_gps_offset_timestamps("vehicle_status")
+        timestamps = self.data_extractor.get_gps_offset_timestamps("vehicle_status", return_datetime=True)
         if timestamps is None:
             return None
 
@@ -141,7 +141,7 @@ class DataProcessor:
         if not gps:
             return None
 
-        timestamps = self.data_extractor.get_gps_offset_timestamps("vehicle_global_position")
+        timestamps = self.data_extractor.get_gps_offset_timestamps("vehicle_global_position", return_datetime=True)
         if timestamps is None:
             return None
 
@@ -215,7 +215,7 @@ class DataProcessor:
         if not vehicle_local_position:
             return None
 
-        timestamps = self.data_extractor.get_gps_offset_timestamps("vehicle_local_position")
+        timestamps = self.data_extractor.get_gps_offset_timestamps("vehicle_local_position", return_datetime=True)
         if timestamps is None:
             return None
 
@@ -244,7 +244,7 @@ class DataProcessor:
         if not battery:
             return None
 
-        timestamps = self.data_extractor.get_gps_offset_timestamps("battery_status")
+        timestamps = self.data_extractor.get_gps_offset_timestamps("battery_status", return_datetime=True)
         if timestamps is None:
             return None
 
@@ -283,7 +283,7 @@ class DataProcessor:
             if not actuator:
                 return None
 
-        timestamps = self.data_extractor.get_gps_offset_timestamps(dataset_name)
+        timestamps = self.data_extractor.get_gps_offset_timestamps(dataset_name, return_datetime=True)
         if timestamps is None:
             return None
 
@@ -325,7 +325,7 @@ class DataProcessor:
         if not sensor:
             return None
 
-        timestamps = self.data_extractor.get_gps_offset_timestamps(dataset_name)
+        timestamps = self.data_extractor.get_gps_offset_timestamps(dataset_name, return_datetime=True)
         if timestamps is None:
             return None
 

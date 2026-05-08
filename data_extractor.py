@@ -115,11 +115,14 @@ class DataExtractor:
             return None
         return ts[0] / 1e6
 
-    def get_gps_offset_timestamps(self, dataset_name):
+    def get_gps_offset_timestamps(self, dataset_name, return_datetime=False):
         """
         获取 GPS 偏移时间戳
+        Args:
+            dataset_name: 数据集名称
+            return_datetime: 是否返回 datetime 对象（默认为 False，返回数值时间戳）
         Returns:
-            GPS时间戳，如果不存在返回None
+            GPS时间戳（数值或 datetime），如果不存在返回None
         """
 
         start_time = self.get_start_gps_offset_timestamps()
@@ -129,9 +132,16 @@ class DataExtractor:
             return None
 
         offset_time = []
-        for dt in d_time:
-            offset_time.append(datetime.fromtimestamp(start_time + dt))
-        return offset_time
+        if return_datetime:
+            # 返回 datetime 对象（用于显示）
+            for dt in d_time:
+                offset_time.append(datetime.fromtimestamp(start_time + dt))
+            return offset_time
+        else:
+            # 返回数值时间戳（用于绘图）
+            for dt in d_time:
+                offset_time.append(start_time + dt)
+            return d_time
 
     def get_all_message_names(self):
         """
