@@ -5,6 +5,7 @@
 """
 
 import os
+from datetime import datetime
 from pyulog import ULog
 
 
@@ -99,6 +100,38 @@ class DataExtractor:
             timestamps = dataset.data['timestamp']
             return (timestamps - timestamps[0]) / 1e6  # 转换为秒，以第一个时间戳为起点
         return None
+
+    def get_start_gps_offset_timestamps(self):
+        """
+        获取起始 GPS 偏移时间戳
+        Returns:
+            第一个GPS时间戳，如果不存在返回None
+        """
+        dataset = self.get_dataset("vehicle_gps_position")
+        if dataset is None or 'timestamp' not in dataset.data:
+            return None
+        ts = dataset.data['time_utc_usec']
+        if len(ts) == 0:
+            return None
+        return ts[0] / 1e6
+
+    def get_gps_offset_timestamps(self, dataset_name):
+        """
+        获取 GPS 偏移时间戳
+        Returns:
+            GPS时间戳，如果不存在返回None
+        """
+
+        start_time = self.get_start_gps_offset_timestamps()
+        d_time = self.get_timestamps(dataset_name)
+
+        if d_time is None:
+            return None
+
+        offset_time = []
+        for dt in d_time:
+            offset_time.append(datetime.fromtimestamp(start_time + dt))
+        return offset_time
 
     def get_all_message_names(self):
         """
