@@ -316,18 +316,86 @@ class DataProcessor:
             主题分类字典
         """
         categories = {
-            '飞行状态': ['vehicle_status', 'commander_state', 'vehicle_control_mode', 'vehicle_land_detected'],
+            # 飞行状态相关
+            '飞行状态': ['vehicle_status', 'vehicle_control_mode', 'vehicle_land_detected', 'commander_state'],
+
+            # 姿态控制相关
             '姿态控制': ['vehicle_attitude', 'vehicle_attitude_setpoint', 'vehicle_rates_setpoint',
                          'vehicle_angular_velocity'],
+
+            # 位置导航相关
             '位置导航': ['vehicle_local_position', 'vehicle_global_position', 'vehicle_gps_position',
                          'vehicle_local_position_setpoint'],
-            'EKF2 融合': ['estimator_local_position', 'estimator_status', 'estimator_innovations',
-                          'estimator_global_position', 'estimator_states'],
-            '传感器数据': ['sensor_combined', 'sensor_accel', 'sensor_gyro', 'sensor_mag', 'sensor_baro', 'sensor_gps'],
+
+            # EKF2 估计器相关
+            'EKF2 估计器': ['estimator_local_position', 'estimator_status', 'estimator_innovations',
+                            'estimator_global_position', 'estimator_states', 'estimator_attitude',
+                            'estimator_event_flags', 'estimator_gnss_hgt_bias', 'estimator_gps_status',
+                            'estimator_innovation_test_ratios', 'estimator_innovation_variances',
+                            'estimator_selector_status', 'estimator_sensor_bias', 'estimator_odometry',
+                            'estimator_optical_flow_vel'],
+
+            # 传感器数据相关
+            '传感器数据': ['sensor_combined', 'sensor_accel', 'sensor_gyro', 'sensor_mag', 'sensor_baro',
+                           'sensor_gps', 'sensor_optical_flow', 'distance_sensor'],
+
+            # 电机/舵机相关
             '电机/舵机': ['actuator_outputs', 'actuator_controls', 'actuator_motors', 'actuator_armed'],
-            '外部定位': ['vehicle_vision_position', 'vehicle_odometry', 'vehicle_visual_odometry'],
+
+            # 电池状态相关
             '电池状态': ['battery_status'],
-            '遥控输入': ['input_rc', 'manual_control_setpoint'],
+
+            # 遥控输入相关
+            '遥控输入': ['input_rc', 'manual_control_setpoint', 'manual_control_switches'],
+
+            # 系统状态相关
+            '系统状态': ['cpuload', 'event', 'failsafe_flags', 'failure_detector_status', 'home_position',
+                         'parameter_update', 'rtl_status', 'rtl_time_estimate', 'takeoff_status'],
+
+            # 控制相关
+            '控制相关': ['action_request', 'config_overrides', 'control_allocator_status',
+                         'hover_thrust_estimate', 'rate_ctrl_status', 'trajectory_setpoint',
+                         'vehicle_command', 'vehicle_constraints', 'vehicle_thrust_setpoint',
+                         'vehicle_torque_setpoint'],
+
+            # 传感器校准相关
+            '传感器校准': ['magnetometer_bias_estimate', 'sensor_selection', 'sensors_status_imu',
+                           'estimator_aid_src_baro_hgt', 'estimator_aid_src_gnss_hgt',
+                           'estimator_aid_src_gnss_pos', 'estimator_aid_src_gnss_vel',
+                           'estimator_aid_src_gravity', 'estimator_aid_src_mag',
+                           'estimator_aid_src_optical_flow', 'estimator_aid_src_rng_hgt'],
+
+            # 遥测状态相关
+            '遥测状态': ['telemetry_status'],
+
+            # 外部定位相关
+            '外部定位': ['vehicle_vision_position', 'vehicle_odometry', 'vehicle_visual_odometry'],
+
+            # IMU相关
+            'IMU相关': ['vehicle_imu', 'vehicle_imu_status'],
+
+            # 导航相关
+            '导航相关': ['navigator_status', 'mission_result'],
+
+            # 空气数据相关
+            '空气数据': ['vehicle_air_data'],
+
+            # 磁力计相关
+            '磁力计': ['vehicle_magnetometer'],
+
+            # 光流相关
+            '光流': ['vehicle_optical_flow'],
+
+            # CAN接口相关
+            'CAN接口': ['can_interface_status'],
+
+            # 气压计偏差
+            '气压计偏差': ['estimator_baro_bias'],
+
+            # 加速度数据
+            '加速度数据': ['vehicle_acceleration'],
+
+            # 其他
             '其他': []
         }
 
