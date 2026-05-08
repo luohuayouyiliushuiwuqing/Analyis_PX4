@@ -58,8 +58,8 @@ Thumbs.db
 *.pyd
 
 # 项目特定
+logs/*.ulg
 logs/*.ulg.bak
-logs/
 *.png
 *.jpg
 *.jpeg
