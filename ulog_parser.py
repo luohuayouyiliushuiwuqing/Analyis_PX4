@@ -106,6 +106,11 @@ class ULogParser:
         """显示三维位置轨迹"""
         self.visualizer.show_3d_position(ax3d, use_gps)
 
+    def show_3d_position_animation(self, use_gps=True, interval=50, third_person=True):
+        """显示三维位置轨迹动画"""
+        file_name = os.path.basename(self.file_path)
+        self.visualizer.show_3d_position_animation(use_gps, file_name, interval, third_person)
+
     def show_sensor_data(self, ax, sensor_type='accel'):
         """显示传感器数据"""
         self.visualizer.show_sensor_data(ax, sensor_type)
@@ -215,6 +220,9 @@ PX4 ULOG 数据分析工具
     --plot TYPE     显示指定类型的图表
                     可选类型: velocity, attitude, position, battery, actuator, sensor
     --3d [gps|pos]  显示三维位置轨迹 (gps: GPS数据, pos: 本地位置)
+    --3d-anim [gps|pos]  显示三维位置轨迹动画 (gps: GPS数据, pos: 本地位置)
+    --interval N    动画帧间隔（毫秒，默认50）
+    --fixed-view    使用固定视角（默认使用第三视角跟随飞机）
     --fields NAME   显示指定数据集的字段列表
     --export NAME   导出数据集到CSV文件
     --help          显示此帮助信息
@@ -225,6 +233,9 @@ PX4 ULOG 数据分析工具
     python ulog_parser.py log.ulg --plot attitude
     python ulog_parser.py log.ulg --3d gps
     python ulog_parser.py log.ulg --3d pos
+    python ulog_parser.py log.ulg --3d-anim gps              # 第三视角跟随飞机
+    python ulog_parser.py log.ulg --3d-anim pos --interval 100
+    python ulog_parser.py log.ulg --3d-anim gps --fixed-view  # 固定视角
     python ulog_parser.py log.ulg --fields vehicle_attitude
     python ulog_parser.py log.ulg --export vehicle_attitude
     """)
@@ -245,6 +256,9 @@ if __name__ == "__main__":
   python ulog_parser.py log.ulg --dashboard  # 显示仪表板
   python ulog_parser.py log.ulg --plot attitude  # 显示姿态图表
   python ulog_parser.py log.ulg --plot --scale 4 # 显示4倍速度图表
+  python ulog_parser.py log.ulg --3d-anim gps   # 第三视角显示GPS轨迹动画
+  python ulog_parser.py log.ulg --3d-anim pos --interval 100  # 第三视角显示本地位置轨迹动画
+  python ulog_parser.py log.ulg --3d-anim gps --fixed-view  # 固定视角显示GPS轨迹动画
         """
     )
     parser.add_argument('log_file', nargs='?', default=default_log,
@@ -260,6 +274,12 @@ if __name__ == "__main__":
                         help='速度图倍率（仅 velocity 使用）')
     parser.add_argument('--3d', dest='plot_3d', type=str, choices=['gps', 'pos'],
                         help='显示三维位置轨迹 (gps: GPS数据, pos: 本地位置)')
+    parser.add_argument('--3d-anim', dest='plot_3d_anim', type=str, choices=['gps', 'pos'],
+                        help='显示三维位置轨迹动画 (gps: GPS数据, pos: 本地位置)')
+    parser.add_argument('--interval', type=int, default=50,
+                        help='动画帧间隔（毫秒，默认50）')
+    parser.add_argument('--fixed-view', action='store_true',
+                        help='使用固定视角（默认使用第三视角跟随飞机）')
     parser.add_argument('--fields', type=str,
                         help='显示指定数据集的字段列表')
     parser.add_argument('--export', type=str,
@@ -284,6 +304,11 @@ if __name__ == "__main__":
             parser.show_3d_position(ax3d, use_gps=use_gps)
             plt.tight_layout()
             plt.show()
+        elif args.plot_3d_anim:
+            # 显示三维位置轨迹动画
+            use_gps = (args.plot_3d_anim == 'gps')
+            third_person = not args.fixed_view  # 默认使用第三视角
+            parser.show_3d_position_animation(use_gps=use_gps, interval=args.interval, third_person=third_person)
         elif args.fields:
             parser.show_field_list(args.fields)
         elif args.export:

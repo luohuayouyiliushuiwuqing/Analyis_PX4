@@ -5,6 +5,8 @@ UI显示层 - 负责图表绘制和显示
 """
 
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+import numpy as np
 
 
 class Visualizer:
@@ -379,5 +381,187 @@ class Visualizer:
         fig = plt.figure(figsize=(10, 8))
         ax3d = fig.add_subplot(111, projection='3d')
         self.show_3d_position(ax3d, use_gps=use_gps)
+        plt.tight_layout()
+        plt.show()
+
+    def show_3d_position_animation(self, use_gps=True, file_name=None, interval=50, third_person=True):
+        """
+        显示三维位置轨迹动画
+
+        Args:
+            use_gps: True使用GPS数据，False使用本地位置数据
+            file_name: 文件名，用于标题显示
+            interval: 动画帧间隔（毫秒）
+            third_person: True使用第三视角（相机跟随飞机），False使用固定视角
+        """
+        pos_data = self.data_processor.get_3d_position_data(use_gps)
+        if not pos_data:
+            print("无法获取位置数据")
+            return
+
+        x = pos_data['x']
+        y = pos_data['y']
+        z = pos_data['z']
+
+        # 获取速度数据
+        velocity_data = self.data_processor.get_velocity_data()
+        if velocity_data:
+            vxy = velocity_data['vxy']
+            vz = velocity_data['vz']
+        else:
+            # 如果没有速度数据，创建零数组
+            vxy = np.zeros(len(x))
+            vz = np.zeros(len(x))
+
+        # 创建图形和3D坐标轴
+        fig = plt.figure(figsize=(14, 10))
+        ax3d = fig.add_subplot(111, projection='3d')
+
+        # 设置标题
+        title = pos_data['title']
+        if file_name:
+            title = f"{title} - {file_name}"
+        if third_person:
+            title += " [第三视角]"
+        ax3d.set_title(title, fontsize=14)
+
+        # 设置坐标轴标签
+        ax3d.set_xlabel(pos_data['xlabel'])
+        ax3d.set_ylabel(pos_data['ylabel'])
+        ax3d.set_zlabel(pos_data['zlabel'])
+
+        # 计算视图范围（用于第三视角）
+        x_range = x.max() - x.min()
+        y_range = y.max() - y.min()
+        z_range = z.max() - z.min()
+
+        # 视图范围大小（第三视角时的观察距离）
+        view_range = max(x_range, y_range, z_range) * 0.5
+        if view_range == 0:
+            view_range = 10
+
+        # 初始化轨迹线和当前点
+        trajectory_line, = ax3d.plot([], [], [], 'b-', linewidth=1.5, label='飞行轨迹')
+        current_point, = ax3d.plot([], [], [], 'ro', markersize=10, label='飞机')
+
+        # 添加信息文本框
+        info_text = ax3d.text2D(
+            0.02, 0.98, '',
+            transform=ax3d.transAxes,
+            fontsize=10,
+            verticalalignment='top',
+            bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8)
+        )
+
+        # 添加图例
+        ax3d.legend(loc='upper right')
+
+        # 添加网格
+        ax3d.grid(True, alpha=0.3)
+
+        # 设置初始视角
+        ax3d.view_init(elev=30, azim=45)
+
+        # 初始化函数
+        def init():
+            trajectory_line.set_data([], [])
+            trajectory_line.set_3d_properties([])
+            current_point.set_data([], [])
+            current_point.set_3d_properties([])
+            info_text.set_text('')
+            return trajectory_line, current_point, info_text
+
+        # 动画更新函数
+        def update(frame):
+            # 更新轨迹（显示到当前帧的所有点）
+            end_idx = min(frame + 1, len(x))
+            trajectory_line.set_data(x[:end_idx], y[:end_idx])
+            trajectory_line.set_3d_properties(z[:end_idx])
+
+            # 更新当前点位置
+            current_point.set_data([x[frame]], [y[frame]])
+            current_point.set_3d_properties([z[frame]])
+
+            # 计算当前距离原点的距离
+            distance = np.sqrt(x[frame] ** 2 + y[frame] ** 2 + z[frame] ** 2)
+
+            # 获取当前速度
+            current_vxy = vxy[frame] if frame < len(vxy) else 0
+            current_vz = vz[frame] if frame < len(vz) else 0
+
+            # 更新信息文本
+            info_text.set_text(
+                f'距离原点: {distance:.2f} m\n'
+                f'水平速度: {current_vxy:.2f} m/s\n'
+                f'垂直速度: {current_vz:.2f} m/s'
+            )
+
+            # 第三视角：相机跟随飞机
+            if third_person:
+                # 获取当前飞机位置
+                px, py, pz = x[frame], y[frame], z[frame]
+
+                # 设置相机观察范围（以飞机为中心）
+                ax3d.set_xlim(px - view_range, px + view_range)
+                ax3d.set_ylim(py - view_range, py + view_range)
+                ax3d.set_zlim(pz - view_range * 0.5, pz + view_range * 0.5)
+
+                # 计算飞行方向（如果有前一帧）
+                if frame > 0:
+                    # 计算速度方向
+                    dx = x[frame] - x[frame - 1]
+                    dy = y[frame] - y[frame - 1]
+                    dz = z[frame] - z[frame - 1]
+
+                    # 计算方位角（水平方向）
+                    if dx != 0 or dy != 0:
+                        azim = np.degrees(np.arctan2(dy, dx)) + 90
+                    else:
+                        azim = ax3d.azim  # 保持当前角度
+
+                    # 计算俯仰角（垂直方向）
+                    horizontal_dist = np.sqrt(dx ** 2 + dy ** 2)
+                    if horizontal_dist > 0:
+                        elev = np.degrees(np.arctan2(dz, horizontal_dist))
+                        elev = max(15, min(60, elev + 30))  # 限制俯仰角范围
+                    else:
+                        elev = ax3d.elev  # 保持当前角度
+
+                    # 平滑更新视角
+                    current_azim = ax3d.azim
+                    current_elev = ax3d.elev
+                    ax3d.view_init(elev=current_elev * 0.9 + elev * 0.1,
+                                   azim=current_azim * 0.9 + azim * 0.1)
+                else:
+                    # 第一帧，设置初始视角
+                    ax3d.view_init(elev=30, azim=45)
+            else:
+                # 固定视角模式
+                x_range = x.max() - x.min()
+                y_range = y.max() - y.min()
+                z_range = z.max() - z.min()
+
+                margin_x = x_range * 0.1 if x_range > 0 else 1
+                margin_y = y_range * 0.1 if y_range > 0 else 1
+                margin_z = z_range * 0.1 if z_range > 0 else 1
+
+                ax3d.set_xlim(x.min() - margin_x, x.max() + margin_x)
+                ax3d.set_ylim(y.min() - margin_y, y.max() + margin_y)
+                ax3d.set_zlim(z.min() - margin_z, z.max() + margin_z)
+
+            return trajectory_line, current_point, info_text
+
+        # 创建动画
+        num_frames = len(x)
+        anim = animation.FuncAnimation(
+            fig,
+            update,
+            frames=num_frames,
+            init_func=init,
+            interval=interval,
+            blit=True,
+            repeat=True
+        )
+
         plt.tight_layout()
         plt.show()
